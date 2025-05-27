@@ -1,0 +1,233 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# General Coding Style Guidelines
+
+-   **Comments:** Do not add comments to the code unless specifically instructed to do so by the user. Focus on writing clear, self-explanatory code.
+-   **Functions vs Classes:** Prefer writing simple, pure functions whenever possible. Only use classes when the complexity of managing state or behavior genuinely necessitates it.
+-   **Package Manager:** Use `pnpm` for all package management tasks.
+
+
+# TypeScript Simplicity & Maintainability Guidelines
+
+These guidelines aim to promote simpler, more maintainable, and easier-to-reason-about TypeScript code. The core idea is to reduce complexity by minimizing intertwining of state, behavior, and time.
+
+## 1. Embrace Immutability
+
+**Why:** Mutable state is a primary source of complexity. Changes can ripple through the system in non-obvious ways. Immutability makes data flow predictable and easier to trace.
+
+**How in TypeScript:**
+
+* **Use `const` for Declarations:** Prevents reassignment of variables.
+    ```typescript
+    const userCount = 10;
+    // userCount = 11; // Error
+    ```
+* **Use `readonly` for Properties:** Mark object properties and array types as `readonly`.
+    ```typescript
+    interface User {
+      readonly id: number;
+      readonly name: string;
+      readonly roles: ReadonlyArray<string>;
+    }
+
+    const user: User = { id: 1, name: "Alice", roles: ["admin", "editor"] };
+    // user.id = 2; // Error
+    // user.roles.push("viewer"); // Error
+    ```
+* **Create New Instances on "Modification":** Instead of mutating objects or arrays, create new ones with the desired changes.
+    ```typescript
+    // For objects
+    const updatedUser = { ...user, name: "Alicia" };
+
+    // For arrays
+    const updatedRoles = [...user.roles, "viewer"];
+    const userWithNewRoles = { ...user, roles: updatedRoles };
+    ```
+* **Use `Readonly<T>` Utility Type:** For a quick way to make all properties of a type readonly.
+    ```typescript
+    type Point = { x: number; y: number };
+    const origin: Readonly<Point> = { x: 0, y: 0 };
+    // origin.x = 1; // Error
+    ```
+
+## 2. Favor Pure Functions
+
+**Why:** Pure functions (outputs depend only on inputs, no side effects) are inherently simple. They are predictable, testable, and easy to reason about in isolation.
+
+**How in TypeScript:**
+
+* **No Side Effects:** Functions should not modify external state (global variables, arguments if they are objects/arrays) or perform I/O directly (e.g., console logging, network requests) as part of their core logic.
+* **Deterministic:** Given the same input, a pure function always returns the same output.
+    ```typescript
+    // Impure (modifies external state)
+    let taxRate = 0.07;
+    function calculateTotal(price: number): number {
+      return price * (1 + taxRate);
+    }
+
+    // Pure
+    function calculateTotalPure(price: number, currentTaxRate: number): number {
+      return price * (1 + currentTaxRate);
+    }
+    ```
+* **Avoid Modifying Arguments:** If an argument is an object or array, return a new modified instance rather than changing the original.
+    ```typescript
+    function addUserRole(user: User, role: string): User {
+      return {
+        ...user,
+        roles: [...user.roles, role] // Creates a new roles array
+      };
+    }
+    ```
+
+## 3. Represent Information as Plain Data
+
+**Why:** Using plain data structures (objects, arrays, Maps, Sets) to represent information directly makes it transparent and accessible. Hiding data within complex object hierarchies with many methods can obscure it.
+
+**How in TypeScript:**
+
+* **Use Interfaces/Types for Shape:** Clearly define the structure of your data.
+    ```typescript
+    interface Product {
+      readonly id: string;
+      readonly name: string;
+      readonly price: number;
+      readonly tags: ReadonlySet<string>;
+    }
+    ```
+* **Prefer Plain Objects:** Instead of classes whose primary role is to hold data and provide getters/setters, use plain objects that conform to an interface.
+    ```typescript
+    const product: Product = {
+      id: "prod123",
+      name: "Wireless Mouse",
+      price: 29.99,
+      tags: new Set(["electronics", "computer accessory"])
+    };
+    ```
+* **Use Built-in Collections:** Leverage `Array`, `Map`, `Set` (ideally their `Readonly` versions or by treating them immutably).
+    ```typescript
+    const productMap: ReadonlyMap<string, Product> = new Map([
+        [product.id, product]
+    ]);
+    ```
+
+## 4. Decompose into Small, Focused Units
+
+**Why:** Large, monolithic functions, classes, or modules that handle many responsibilities become complex and intertwined. Small, focused units are easier to understand, test, and maintain independently.
+
+**How in TypeScript:**
+
+* **Single Responsibility Principle (SRP):** Each function or module should have one primary responsibility.
+* **Small Functions:** Break down complex logic into smaller, well-named helper functions.
+* **ES Modules:** Organize code into logical units using `import`/`export` with clear dependencies.
+    ```typescript
+    // utils/math.ts
+    export function add(a: number, b: number): number {
+      return a + b;
+    }
+
+    export function multiply(a: number, b: number): number {
+      return a * b;
+    }
+
+    // main.ts
+    import { add, multiply } from './utils/math';
+    const sum = add(5, 3);
+    ```
+
+## 5. Prefer Composition Over Inheritance
+
+**Why:** Class inheritance can lead to tightly coupled hierarchies that are hard to change and reason about. It can also lead to the "banana-gorilla-jungle" problem (you wanted a banana, but got the gorilla holding the banana and the whole jungle). Composition is more flexible and less coupled.
+
+**How in TypeScript:**
+
+* **Define Behavior Contracts with Function Types:** Define the signature of functions that represent specific behaviors.
+    ```typescript
+    type LoggerFn = (message: string) => void;
+    ```
+* **Compose Behaviors by Passing Functions:** Create functions or objects that accept other functions (implementing specific behaviors) as parameters or properties. This allows you to "plug in" different behaviors.
+    ```typescript
+    const consoleLogger: LoggerFn = (message: string): void => {
+      console.log(`CONSOLE: ${message}`);
+    };
+
+    const fileLogger = (filePath: string): LoggerFn => {
+      return (message: string): void => {
+        // In a real scenario, you'd append to a file.
+        console.log(`FILE (${filePath}): ${message}`);
+      };
+    };
+
+    // Higher-order function that accepts a logger function
+    function generateReport(data: string, logger: LoggerFn): void {
+      logger("Starting report generation...");
+      // ... report generation logic ...
+      logger(`Report generated with data: ${data}`);
+      logger("Report generation finished.");
+    }
+
+    // Using console logger
+    generateReport("Sales Data Q1", consoleLogger);
+
+    // Using file logger
+    const myFileLogger = fileLogger("app.log");
+    generateReport("Inventory Update", myFileLogger);
+
+    // You can also compose functions into objects if needed
+    interface ReportService {
+      generate: (data: string) => void;
+    }
+
+    function createReportService(logger: LoggerFn): ReportService {
+      return {
+        generate: (data: string) => {
+          logger("Service: Starting report generation...");
+          // ... report generation logic ...
+          logger(`Service: Report generated with data: ${data}`);
+          logger("Service: Report generation finished.");
+        }
+      };
+    }
+
+    const consoleReportService = createReportService(consoleLogger);
+    consoleReportService.generate("User Activity");
+    ```
+
+## 6. Use Declarative Data Manipulation
+
+**Why:** Declarative approaches focus on *what* you want to achieve with data, rather than *how* to achieve it step-by-step with imperative loops. This often leads to more readable and less error-prone code.
+
+**How in TypeScript:**
+
+* **Array Methods:** Utilize built-in array methods like `map`, `filter`, `reduce`, `find`, `some`, `every`.
+    ```typescript
+    interface Item {
+      id: number;
+      name: string;
+      price: number;
+      isActive: boolean;
+    }
+
+    const items: ReadonlyArray<Item> = [
+      { id: 1, name: "Apple", price: 1, isActive: true },
+      { id: 2, name: "Banana", price: 0.5, isActive: false },
+      { id: 3, name: "Orange", price: 0.75, isActive: true },
+    ];
+
+    // Get names of active items with price > 0.6
+    const expensiveActiveItemNames = items
+      .filter(item => item.isActive && item.price > 0.6)
+      .map(item => item.name);
+    // Result: ["Apple", "Orange"]
+
+    // Calculate total price of active items
+    const totalActivePrice = items
+      .filter(item => item.isActive)
+      .reduce((sum, item) => sum + item.price, 0);
+    // Result: 1.75
+    ```
+* **Avoid Manual Loops Where Possible:** If a functional array method can achieve the same result more clearly, prefer it over `for` or `while` loops.
+
