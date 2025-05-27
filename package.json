@@ -1,0 +1,33 @@
+{
+  "name": "unfold",
+  "version": "0.0.1",
+  "description": "A modern library to add page turn animations to your website",
+  "keywords": [
+    "page turn",
+    "animation",
+    "typescript"
+  ],
+  "homepage": "https://github.com/jhlabs/unfold",
+  "bugs": {
+    "url": "https://github.com/jhlabs/unfold/issues"
+  },
+  "author": "Johannes Herrmann <team@totaltypescript.com> (https://totaltypescript.com)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mattpocock/tt-package-demo.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "format": "prettier --write .",
+    "check-format": "prettier --check .",
+    "ci": "pnpm run build"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3"
+  }
+}
