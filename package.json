@@ -1,33 +1,21 @@
 {
-  "name": "unfold",
+  "name": "unfold-monorepo",
   "version": "0.0.1",
   "description": "A modern library to add page turn animations to your website",
-  "keywords": [
-    "page turn",
-    "animation",
-    "typescript"
-  ],
-  "homepage": "https://github.com/jhlabs/unfold",
-  "bugs": {
-    "url": "https://github.com/jhlabs/unfold/issues"
-  },
-  "author": "Johannes Herrmann <team@totaltypescript.com> (https://totaltypescript.com)",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/mattpocock/tt-package-demo.git"
-  },
-  "files": [
-    "dist"
-  ],
-  "type": "module",
+  "private": true,
   "scripts": {
-    "build": "tsc",
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
     "format": "prettier --write .",
     "check-format": "prettier --check .",
-    "ci": "pnpm run build"
+    "test": "turbo test",
+    "clean": "turbo clean"
   },
   "devDependencies": {
     "prettier": "^3.5.3",
+    "turbo": "^2.5.3",
     "typescript": "^5.8.3"
-  }
+  },
+  "packageManager": "pnpm@9.0.0"
 }

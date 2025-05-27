@@ -1,0 +1,29 @@
+{
+	"name": "@unfold/docs",
+	"type": "module",
+	"version": "0.0.1",
+	"private": true,
+	"scripts": {
+		"dev": "astro dev",
+		"start": "astro dev",
+		"build": "astro build",
+		"preview": "astro build && wrangler dev",
+		"astro": "astro",
+		"deploy": "astro build && wrangler deploy",
+		"cf-typegen": "wrangler types",
+		"clean": "rm -rf dist .astro"
+	},
+	"dependencies": {
+		"@astrojs/cloudflare": "^12.5.3",
+		"@astrojs/starlight": "^0.34.3",
+		"@tailwindcss/vite": "^4.1.7",
+		"astro": "^5.8.0",
+		"sharp": "^0.34.2",
+		"tailwindcss": "^4.1.7",
+		"unfold-js": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/node": "^22.15.21",
+		"wrangler": "^4.16.1"
+	}
+}
